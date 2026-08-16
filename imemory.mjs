@@ -1,7 +1,44 @@
-import { defineTool } from '@deepseek-ai/dsh-tools'
 import { homedir } from 'node:os'
 import { isAbsolute, join } from 'node:path'
 import { mkdir } from 'node:fs/promises'
+
+// 零依赖工具定义助手:输出与 @deepseek-ai/dsh-tools 的 defineTool 相同的注册形状
+// (parameters 编译为 object-rooted JSON Schema)。插件因此不依赖任何 @deepseek-ai
+// 包 import——手动复制到 profile、link: 安装、npm/git 安装任意路径都能加载。
+function compileParameters(spec) {
+  const properties = {}
+  const required = []
+  for (const [key, entry] of Object.entries(spec || {})) {
+    const prop = { ...entry }
+    if (prop.required === true) {
+      delete prop.required
+      required.push(key)
+    } else if (prop.required === false) {
+      delete prop.required
+    }
+    properties[key] = prop
+  }
+  const schema = { type: 'object', properties }
+  if (required.length > 0) schema.required = required
+  return schema
+}
+
+function defineTool(options) {
+  const userExecute = options.execute
+  const userRender = options.output.render
+  return {
+    name: options.name,
+    description: options.description,
+    parameters: compileParameters(options.parameters),
+    output: {
+      schema: options.output.schema,
+      render(args, value) { return userRender(args, value) },
+    },
+    async execute(args, exec) {
+      return userExecute(args, exec)
+    },
+  }
+}
 
 // imemory —— 自进化长期记忆插件(发布版)
 // 记忆/笔记目录默认位于 harness 根目录($DSH_HOME,未设时 ~/.dsh)下的 imemory/ 子目录,
@@ -34,7 +71,7 @@ function resolveMemDir(ctx, config) {
 
 export default {
   name: 'imemory',
-  inject: ['timer', 'tools', 'fs', 'llm', 'systemPrompt', 'agentDefaultModel', 'sessionQuery', 'skills', 'webServer'],
+  inject: ['timer', 'tools', 'fs', 'llm', 'systemPrompt', 'agentDefaultModel', 'sessionQuery', 'skills'],
   apply(ctx, config) {
     // 记忆/笔记目录:config.memDir 优先,默认 harness 根目录下 imemory/ 子目录
     const memDir = resolveMemDir(ctx, config)
@@ -49,7 +86,6 @@ export default {
     const defaultModel = ctx.get('agentDefaultModel')
     const sessionQuery = ctx.get('sessionQuery')
     const skillsService = ctx.get('skills')
-    const webServer = ctx.get('webServer')
     if (!fsService || !llmService) {
       console.error('[imemory] 缺少 fs/llm 服务,记忆插件停用')
       return
@@ -79,7 +115,9 @@ export default {
         textCache[file] = { text, at: Date.now() }
         return text
       } catch (err) {
-        console.error('[imemory] 读取 ' + file + '.md 失败: ' + String(err && err.message ? err.message : err))
+        const msg = String(err && err.message ? err.message : err)
+        // 文件不存在(首次使用)是正常状态,静默;其他读取错误才报
+        if (!/not found|ENOENT|no such file/i.test(msg)) console.error('[imemory] 读取 ' + file + '.md 失败: ' + msg)
         return cached.text
       }
     }
@@ -1083,8 +1121,10 @@ export default {
 
     const toolCount = registerMemoryTools()
 
-    // ---------- 面板 HTTP API + 静态页(永久,替代动态插件的设置面板) ----------
-    if (webServer && typeof webServer.register === 'function') {
+    // ---------- 面板 HTTP API + 静态页(webServer 为可选服务:非 web profile 不注册,也不阻塞启动) ----------
+    ctx.inject(['webServer'], (serverCtx) => {
+      const webServer = serverCtx.webServer
+      if (!webServer || typeof webServer.register !== 'function') return
       const json = (res, code, value) => {
         res.writeHead(code, { 'content-type': 'application/json; charset=utf-8' })
         res.end(JSON.stringify(value))
@@ -1202,7 +1242,8 @@ export default {
           res.end(PANEL_HTML)
         },
       })
-    }
+      if (webServer.host && webServer.port) console.log('[imemory] 管理面板: http://' + webServer.host + ':' + webServer.port + '/imemory/')
+    })
 
     const PANEL_HTML = `<!doctype html>
 <html lang="zh-CN">
@@ -1366,8 +1407,7 @@ load()
           console.log('[imemory] 已加载 ' + file + '.md: ' + (entries === null ? 0 : entries.length) + ' 条')
         } catch (err) { /* ignore */ }
       }
-      const panelUrl = 'http://' + (webServer && webServer.host ? webServer.host : '127.0.0.1') + ':' + (webServer && webServer.port ? webServer.port : '<端口>') + '/imemory/'
-      console.log('[imemory] 就绪:importance 打分 / 衰减淘汰 / LLM 语义重排 / 会话检索 / 冲突合并 / 技能学习闭环 / 面板 ' + panelUrl + ' / ' + toolCount + ' 个工具;记忆目录 ' + memDir)
+      console.log('[imemory] 就绪:importance 打分 / 衰减淘汰 / LLM 语义重排 / 会话检索 / 冲突合并 / 技能学习闭环 / ' + toolCount + ' 个工具;记忆目录 ' + memDir + '(web profile 下另有管理面板,见上方日志)')
     })()
   },
 }

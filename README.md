@@ -13,6 +13,8 @@
 - **技能学习闭环**:可复用流程沉淀为 `learned-*` 技能(skills.json → DSH 技能注册表,可用 `skill` 工具加载)
 - **6 个工具**:`memory_search` / `memory_add` / `memory_update` / `memory_forget` / `memory_sessions` / `memory_consolidate`
 - **网页管理面板**:`/imemory/`(条目 / 命中次数 / 重要度升降 / 删除 / 整理冲突)
+- **零依赖**:不 import 任何 `@deepseek-ai` 包,手动复制到任意路径、`link:` 安装、npm/git 安装都能直接加载
+- **不挑 profile 类型**:`webServer` 是可选服务——web profile 自动挂管理面板,无 web 服务的 headless/tui 等 profile 也照常运行
 
 ## 记忆目录(发布版路径规则)
 
