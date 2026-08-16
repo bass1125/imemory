@@ -1,8 +1,10 @@
 # imemory — Self-Evolving Long-Term Memory Plugin for DSH
 
-`imemory` is a self-evolving long-term memory plugin for DeepSeek Harness (DSH). It keeps your long-term memory in two **plain-text files** (`MEMORY.md` — your notes, and `USER.md` — the user profile; entries separated by a lone `§` line). After each turn, an LLM extracts durable facts worth remembering and writes them back; before each step, relevant memories are recalled and injected into the context. Reusable workflows are distilled into `learned-*` skills. A web panel is included.
-
 > **中文文档**:[README.md](./README.md)
+>
+> ⚠️ **Release status**: Built on Aug 14, 2026 and put into daily use the very next day, this project has already gone through 4 iterations. Because it is highly personalized, the published version is still a **beta** — APIs and behavior may change as it evolves. Thanks for your understanding.
+
+`imemory` is a self-evolving long-term memory plugin for DeepSeek Harness (DSH). It keeps your long-term memory in two **plain-text files** (`MEMORY.md` — your notes, and `USER.md` — the user profile; entries separated by a lone `§` line). After each turn, an LLM extracts durable facts worth remembering and writes them back; before each step, relevant memories are recalled and injected into the context. Reusable workflows are distilled into `learned-*` skills. A web panel is included.
 
 ## Features
 
