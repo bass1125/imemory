@@ -1,0 +1,36 @@
+{
+  "name": "imemory",
+  "version": "0.1.0",
+  "description": "DSH 自进化长期记忆插件:回合后 LLM 自动提取记忆、每步召回注入、语义重排检索、冲突合并、learned-* 技能沉淀,附记忆库管理面板。记忆文件默认存于 harness 根目录($DSH_HOME,未设时 ~/.dsh)下的 imemory/ 子目录,可用 config.memDir 覆盖。",
+  "type": "module",
+  "main": "imemory.mjs",
+  "exports": {
+    ".": "./imemory.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "imemory.mjs",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bass1125/imemory"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": { "optional": true }
+  }
+}

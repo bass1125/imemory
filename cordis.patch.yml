@@ -1,0 +1,10 @@
+# imemory bundle patch
+#
+# 这是发布包 `dsh.bundle.patch` 声明的补丁层:通过官方 CLI 安装时
+#   dsh plugin --profile <name> add imemory
+# 命令会把它并入 bundle 栈,启动时把下面这一行插件挂进 profile。
+# 手动方式见 README.md(把 imemory.mjs 放进 profile 目录,在 profile 的
+# cordis.patch.yml 里写同样的 insert 行即可)。
+- insert:
+    - id: imemory
+      name: 'imemory'
