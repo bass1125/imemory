@@ -1,4 +1,4 @@
-# imemory — DSH 自进化长期记忆插件
+# imemory — DSH 自进化长期记忆插件  !!!!!!!!!!!!已经无法适应最新版dsh了！！！！！！！！！！
 
 > **EN**: [English README](./README_EN.md)
 >
